@@ -1,4 +1,3 @@
-# keylogger_detector_remediate.py
 import os
 import shutil
 import sys
@@ -9,7 +8,7 @@ import winreg
 import subprocess
 from datetime import datetime
 
-# Configuration
+
 QUARANTINE_DIR = r"C:\quarantine_keylogger_detector"
 SUSPICIOUS_PATH_HINTS = [os.environ.get("TEMP", r"C:\Windows\Temp"), os.path.join(os.environ['USERPROFILE'], "AppData")]
 SUSPICIOUS_NAMES = ["keylogger", "keylog", "logkeys", "klg", "kblogger"]  # heuristic substrings
@@ -90,13 +89,10 @@ def list_run_keys():
     return keys
 
 def list_scheduled_tasks():
-    # uses schtasks to list tasks - parses minimal info
     tasks = []
     try:
         out = subprocess.check_output(["schtasks", "/Query", "/FO", "CSV", "/V"], stderr=subprocess.DEVNULL, text=True, encoding='utf-8', errors='ignore')
-        # CSV first line is header, subsequent lines are tasks
         for line in out.splitlines()[1:]:
-            # naive CSV split - schtasks outputs quoted CSV
             parts = [p.strip('"') for p in line.split('","')]
             if len(parts) >= 9:
                 tasks.append({
@@ -117,11 +113,10 @@ def quarantine_file(path):
     dest = os.path.join(QUARANTINE_DIR, f"{ts}_{basename}")
     try:
         shutil.copy2(path, dest)
-        os.chmod(dest, 0o444)  # read-only
+        os.chmod(dest, 0o444)  
         return True, dest
     except Exception as e:
         return False, str(e)
-
 def remove_registry_run_entry(hive, path, name):
     try:
         with winreg.OpenKey(hive, path, 0, winreg.KEY_SET_VALUE) as k:
@@ -178,7 +173,6 @@ def analyze():
         if net:
             reasons.append(f"network connections: {net[:3]}")
 
-        # quick file write heuristic: if exe in user folder and small exe
         try:
             if exe and os.path.exists(exe):
                 size = os.path.getsize(exe)
@@ -224,8 +218,6 @@ if __name__ == "__main__":
         print("This script is Windows-focused. It will run process checks cross-platform but registry/schtasks are Windows-only.")
     report = analyze()
     print_report(report)
-
-    # Simple interactive remediation example (do not run blindly)
     if report['findings']:
         print("\nFound suspicious processes. Example remediation actions will be printed.")
         for f in report['findings']:
@@ -238,8 +230,8 @@ if __name__ == "__main__":
             ok, msg = kill_process(pid)
             print("Kill process:", ok, msg)
 
-        # Show Run keys for operator to remove manually or script using remove_registry_run_entry()
         print("\nTo remove a Run key programmatically, use remove_registry_run_entry(hive, path, name).")
         print("To delete scheduled task programmatically, use delete_schtask(taskname).")
     else:
         print("\nNo suspicious processes detected by heuristic scan.")
+
