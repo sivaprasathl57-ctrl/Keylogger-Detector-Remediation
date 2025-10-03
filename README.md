@@ -39,7 +39,7 @@ The Keylogger Detector & Remediation project is a Python-based security tool des
 Open your terminal (or cmd) and run:
 
 ```bash
-  git clone https://github.com/<your-username>/keylogger-detector.git
+  (https://github.com/sivaprasathl57-ctrl/Keylogger-Detector-Remediation.git)
   cd keylogger-detector
 ```
 3️⃣ Install Dependencies
